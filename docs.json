@@ -38,14 +38,14 @@
     }
   },
   "logo": {
-    "light": "/logo/mingo.png",
-    "dark": "/logo/mingo.png"
+    "light": "/logo/logo.png",
+    "dark": "/logo/logo.png"
   },
   "navbar": {
     "links": [
       {
         "label": "Support",
-        "href": "mailto:support@mingo.com"
+        "href": "mailto:engineering@mingo.com"
       }
     ],
     "primary": {

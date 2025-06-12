@@ -129,15 +129,6 @@
         "responses": { "202": { "description": "Purchase started", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ResponseBody_PurchaseEventResponse" } } } }, "401": { "description": "Unauthorized" }, "422": { "description": "Invalid request or sold out" } }
       }
     },
-    "/healthz": {
-      "get": {
-        "tags": ["Health"],
-        "summary": "Check API health status",
-        "description": "Returns a 200 status code if the API is running and healthy.",
-        "operationId": "healthCheck",
-        "responses": { "200": { "description": "The API is running and healthy", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ResponseBody_String" } } } } }
-      }
-    },
     "/launch": {
       "get": {
         "tags": ["Nft Collections"],
@@ -369,7 +360,6 @@
           }
         }
       },
-      "ResponseBody_String": { "type": "object", "required": ["data"], "properties": { "data": { "type": "string" } } },
       "ResponseBody_UserSession": {
         "type": "object",
         "required": ["data"],
