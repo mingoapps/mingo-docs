@@ -1,217 +1,488 @@
 {
   "openapi": "3.1.0",
-  "info": {
-    "title": "OpenAPI Plant Store",
-    "description": "A sample API that uses a plant store as an example to demonstrate features in the OpenAPI specification",
-    "license": {
-      "name": "MIT"
-    },
-    "version": "1.0.0"
-  },
-  "servers": [
-    {
-      "url": "http://sandbox.mintlify.com"
-    }
-  ],
-  "security": [
-    {
-      "bearerAuth": []
-    }
-  ],
+  "info": { "title": "Mingo Api", "description": "Rest api for Mingo's Web3 ticketing platform", "contact": { "name": "Mingo Engineering", "url": "https://mingo.com", "email": "engineering@mingo.com" }, "license": { "name": "" }, "version": "0.1.0" },
   "paths": {
-    "/plants": {
-      "get": {
-        "description": "Returns all plants from the system that the user has access to",
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "The maximum number of results to return",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
+    "/auth/login/did": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Login with Magic.link DID token",
+        "operationId": "loginWithDid",
+        "requestBody": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AuthenticateWithDidTokenRequest" } } }, "required": true },
         "responses": {
           "200": {
-            "description": "Plant response",
+            "description": "Session found",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ResponseBody_UserSession" }, "example": [{ "magic_issuer": "d6703cc8-9e79-415d-ac03-a4dc7f6ab43c", "token": "d6703cc8-9e79-415d-ac03-a4dc7f6ab43c", "user_id": "d6703cc8-9e79-415d-ac03-a4dc7f6ab43c" }] } }
+          }
+        }
+      }
+    },
+    "/auth/login/key": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Login with Hedera key pair",
+        "operationId": "loginWithKey",
+        "requestBody": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/LoginWithKeyRequest" } } }, "required": true },
+        "responses": { "201": { "description": "Session created", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ResponseBody_UserSession" } } } }, "403": { "description": "Invalid signature or public key mismatch" } }
+      }
+    },
+    "/auth/logout": { "delete": { "tags": ["Authentication"], "summary": "Logout current user session", "operationId": "logoutCurrentUser", "responses": { "204": { "description": "User Logged Out" } } } },
+    "/auth/me": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "Get current user session",
+        "operationId": "getCurrentUser",
+        "responses": { "200": { "description": "Authenticated User Session Found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ResponseBody_UserSession" } } } }, "401": { "description": "Unauthorized User" } }
+      }
+    },
+    "/event": {
+      "get": {
+        "tags": ["Events"],
+        "summary": "Get list of available events",
+        "operationId": "getAvailableEvents",
+        "responses": {
+          "200": {
+            "description": "List of available events retrieved successfully",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Plant"
+                "schema": { "$ref": "#/components/schemas/ResponseBody_Vec_Event" },
+                "example": [
+                  {
+                    "eventId": "d6703cc8-9e79-415d-ac03-a4dc7f6ab43c",
+                    "imageCidr": "bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi",
+                    "location": "London, UK",
+                    "locationImageCidr": "bafkreihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku",
+                    "scheduledAt": "2019-08-24T14:15:22Z",
+                    "tickets": [{ "description": "General Admission Ticket", "eventTicketId": "fb24ea02-c0d8-4037-9c7a-9e7bcc710891", "priceUsd": "25" }],
+                    "title": "London Olympics"
                   }
-                }
+                ]
               }
             }
           },
-          "400": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
+          "401": { "description": "Unauthorized user" }
         }
+      }
+    },
+    "/event/purchase/{purchase_id}/redemption": {
+      "post": {
+        "tags": ["Events"],
+        "summary": "Redeem an event ticket",
+        "operationId": "redeemEventTicket",
+        "parameters": [{ "name": "purchase_id", "in": "path", "description": "The ID of the purchased ticket to redeem", "required": true, "schema": { "type": "string", "format": "uuid" } }],
+        "requestBody": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RedeemEventTicketRequest" } } }, "required": true },
+        "responses": {
+          "200": { "description": "Ticket redemption successful", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ResponseBody_RedeemEventTicketResponse" } } } },
+          "400": { "description": "Invalid request" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "User does not own the ticket NFT" },
+          "404": { "description": "Ticket not found" }
+        },
+        "security": [{ "session": [] }]
+      }
+    },
+    "/event/purchase/{purchase}": {
+      "get": {
+        "tags": ["Events"],
+        "summary": "Get event ticket purchase status",
+        "operationId": "getEventPurchaseStatus",
+        "parameters": [{ "name": "purchase", "in": "path", "description": "Purchase ID", "required": true, "schema": { "type": "string", "format": "uuid" } }],
+        "responses": { "200": { "description": "Purchase status found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ResponseBody_EventPurchase" } } } }, "401": { "description": "Unauthorized" }, "404": { "description": "Purchase not found" } }
       },
       "post": {
-        "description": "Creates a new plant in the store",
-        "requestBody": {
-          "description": "Plant to add to the store",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NewPlant"
-              }
-            }
-          },
-          "required": true
-        },
+        "tags": ["Events"],
+        "summary": "Finalize event ticket purchase",
+        "operationId": "finalizeEventPurchase",
+        "parameters": [{ "name": "purchase", "in": "path", "description": "Purchase ID", "required": true, "schema": { "type": "string", "format": "uuid" } }],
+        "requestBody": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/FinalizePurchaseEventRequest" } } }, "required": true },
         "responses": {
-          "200": {
-            "description": "plant response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Plant"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
+          "201": { "description": "Purchase finalized", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ResponseBody_FinalizePurchaseEventResponse" } } } },
+          "202": { "description": "Association required", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ResponseBody_FinalizePurchaseEventResponse" } } } },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Purchase not found" },
+          "422": { "description": "Invalid request" }
         }
       }
     },
-    "/plants/{id}": {
-      "delete": {
-        "description": "Deletes a single plant based on the ID supplied",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "ID of plant to delete",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
+    "/event/redemption/{redemption_id}": {
+      "get": {
+        "tags": ["Events"],
+        "summary": "Finalize an event ticket redemption",
+        "operationId": "finalizeEventTicketRedemption",
+        "parameters": [{ "name": "redemption_id", "in": "path", "description": "The ID of the redemption to finalize", "required": true, "schema": { "type": "string", "format": "uuid" } }],
         "responses": {
-          "204": {
-            "description": "Plant deleted",
-            "content": {}
-          },
-          "400": {
-            "description": "unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "webhooks": {
-    "/plant/webhook": {
-      "post": {
-        "description": "Information about a new plant added to the store",
-        "requestBody": {
-          "description": "Plant added to the store",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NewPlant"
-              }
-            }
-          }
+          "200": { "description": "Redemption finalized successfully", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ResponseBody_RedeemEventTicketFinalizeResponse" } } } },
+          "400": { "description": "Invalid request" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "User does not own the ticket NFT" },
+          "404": { "description": "Redemption not found" }
         },
+        "security": [{ "session": [] }]
+      }
+    },
+    "/event/{id}/purchase": {
+      "post": {
+        "tags": ["Events"],
+        "summary": "Purchase Event Ticket",
+        "operationId": "beginEventPurchase",
+        "parameters": [{ "name": "id", "in": "path", "description": "Event ID", "required": true, "schema": { "type": "string", "format": "uuid" } }],
+        "requestBody": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PurchaseEventRequest" } } }, "required": true },
+        "responses": { "202": { "description": "Purchase started", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ResponseBody_PurchaseEventResponse" } } } }, "401": { "description": "Unauthorized" }, "422": { "description": "Invalid request or sold out" } }
+      }
+    },
+    "/healthz": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "Check API health status",
+        "description": "Returns a 200 status code if the API is running and healthy.",
+        "operationId": "healthCheck",
+        "responses": { "200": { "description": "The API is running and healthy", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ResponseBody_String" } } } } }
+      }
+    },
+    "/launch": {
+      "get": {
+        "tags": ["Nft Collections"],
+        "summary": "List Nft Collections",
+        "operationId": "getAvailableLaunches",
+        "responses": { "200": { "description": "List of available launches retrieved successfully", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ResponseBody_Vec_Launch" } } } }, "401": { "description": "Unauthorized user" } }
+      }
+    },
+    "/launch/purchase/{purchase}": {
+      "get": {
+        "tags": ["Nft Collections"],
+        "summary": "Get Nft Collection purchase status",
+        "description": "Retrieves the current status of a launch purchase.",
+        "operationId": "getLaunchPurchaseStatus",
+        "parameters": [{ "name": "purchase", "in": "path", "description": "Purchase ID", "required": true, "schema": { "type": "string", "format": "uuid" } }],
         "responses": {
-          "200": {
-            "description": "Return a 200 status to indicate that the data was received successfully"
-          }
-        }
+          "200": { "description": "Purchase status retrieved successfully", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ResponseBody_LaunchPurchase" } } } },
+          "401": { "description": "Unauthorized user" },
+          "404": { "description": "Purchase not found" },
+          "500": { "description": "Internal server error" }
+        },
+        "security": [{ "auth": [] }]
+      },
+      "post": {
+        "tags": ["Nft Collections"],
+        "summary": "Finalize an Nft Collection purchase",
+        "description": "Completes the purchase process by minting the NFT.",
+        "operationId": "finalizeLaunchPurchase",
+        "parameters": [{ "name": "purchase", "in": "path", "description": "Purchase ID", "required": true, "schema": { "type": "string", "format": "uuid" } }],
+        "requestBody": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/FinalizeLaunchPurchaseRequest" } } }, "required": true },
+        "responses": {
+          "200": { "description": "Purchase finalized successfully", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ResponseBody_FinalizeLaunchPurchaseResponse" } } } },
+          "400": { "description": "Invalid request" },
+          "401": { "description": "Unauthorized user" },
+          "404": { "description": "Purchase not found" },
+          "409": { "description": "Purchase cannot be finalized" },
+          "500": { "description": "Internal server error" }
+        },
+        "security": [{ "auth": [] }]
+      }
+    },
+    "/launch/{id}/purchase": {
+      "post": {
+        "tags": ["Nft Collections"],
+        "summary": "Begin an Nft Collection purchase",
+        "description": "Starts the process of purchasing a launch NFT.",
+        "operationId": "beginLaunchPurchase",
+        "parameters": [{ "name": "id", "in": "path", "description": "Launch ID", "required": true, "schema": { "type": "string", "format": "uuid" } }],
+        "requestBody": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/BeginLaunchPurchaseRequest" } } }, "required": true },
+        "responses": {
+          "200": { "description": "Purchase initiated successfully", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ResponseBody_BeginLaunchPurchaseResponse" } } } },
+          "400": { "description": "Invalid request" },
+          "401": { "description": "Unauthorized user" },
+          "404": { "description": "Launch not found" },
+          "409": { "description": "Launch is sold out" },
+          "500": { "description": "Internal server error" }
+        },
+        "security": [{ "auth": [] }]
+      }
+    },
+    "/wallet": {
+      "get": {
+        "tags": ["Wallet"],
+        "summary": "Get user wallet",
+        "operationId": "getWallet",
+        "responses": { "200": { "description": "Wallet details retrieved successfully", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ResponseBody_Wallet" } } } }, "401": { "description": "Unauthorized user" } }
+      }
+    },
+    "/wallet/asset": {
+      "get": {
+        "tags": ["Wallet"],
+        "summary": "Get user wallet assets",
+        "operationId": "getWalletAssets",
+        "responses": { "200": { "description": "Wallet assets retrieved successfully", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ResponseBody_Vec_WalletAsset" } } } }, "401": { "description": "Unauthorized user" } }
       }
     }
   },
   "components": {
     "schemas": {
-      "Plant": {
-        "required": [
-          "name"
-        ],
+      "AuthenticateWithDidTokenRequest": { "type": "object", "required": ["did_token"], "properties": { "did_token": { "type": "string", "description": "The distributed identity token, returned from `getIdToken()` in <magic.link's> SDK" } } },
+      "BeginLaunchPurchaseRequest": { "type": "object", "description": "Request to begin a launch purchase", "required": ["launch_id"], "properties": { "launch_id": { "type": "string", "format": "uuid" } } },
+      "BeginLaunchPurchaseResponse": { "type": "object", "description": "Response from beginning a launch purchase", "required": ["launch_purchase_id", "client_secret"], "properties": { "client_secret": { "type": "string" }, "launch_purchase_id": { "type": "string", "format": "uuid" } } },
+      "ErrorResponse": { "type": "object", "required": ["status", "code", "title"], "properties": { "code": { "type": "string" }, "status": { "type": "string" }, "title": { "type": "string" } } },
+      "ErrorResponseBody": { "type": "object", "required": ["errors"], "properties": { "errors": { "type": "array", "items": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+      "Event": {
         "type": "object",
+        "required": ["eventId", "title", "imageCidr", "location", "locationImageCidr", "scheduledAt", "tickets"],
         "properties": {
-          "name": {
-            "description": "The name of the plant",
-            "type": "string"
+          "eventId": { "type": "string", "format": "uuid" },
+          "imageCidr": { "type": "string" },
+          "location": { "type": "string" },
+          "locationImageCidr": { "type": "string" },
+          "scheduledAt": { "type": "string", "format": "date-time" },
+          "tickets": { "type": "array", "items": { "$ref": "#/components/schemas/EventTicket" } },
+          "title": { "type": "string" }
+        }
+      },
+      "EventPurchase": { "type": "object", "required": ["eventPurchaseId", "status"], "properties": { "eventPurchaseId": { "type": "string", "format": "uuid" }, "status": { "$ref": "#/components/schemas/EventPurchaseStatus" } } },
+      "EventPurchaseStatus": { "type": "string", "enum": ["pending", "charged", "finalized", "expired"] },
+      "EventTicket": { "type": "object", "required": ["eventTicketId", "description", "priceUsd"], "properties": { "description": { "type": "string" }, "eventTicketId": { "type": "string", "format": "uuid" }, "priceUsd": { "type": "string" } } },
+      "FinalizeLaunchPurchaseRequest": {
+        "type": "object",
+        "description": "Request to finalize a launch purchase",
+        "required": ["launch_purchase_id"],
+        "properties": { "associate_transaction": { "type": ["array", "null"], "items": { "type": "integer", "format": "int32", "minimum": 0 } }, "launch_purchase_id": { "type": "string", "format": "uuid" } }
+      },
+      "FinalizeLaunchPurchaseResponse": {
+        "type": "object",
+        "description": "Response from finalizing a launch purchase",
+        "required": ["token_num", "serial_num", "title", "image_cidr"],
+        "properties": {
+          "associate_transaction": { "type": ["array", "null"], "items": { "type": "integer", "format": "int32", "minimum": 0 } },
+          "image_cidr": { "type": "string" },
+          "serial_num": { "type": "integer", "format": "int64", "minimum": 0 },
+          "title": { "type": "string" },
+          "token_num": { "type": "integer", "format": "int64", "minimum": 0 }
+        }
+      },
+      "FinalizePurchaseEventRequest": { "type": "object", "properties": { "associateTransaction": { "type": ["array", "null"], "items": { "type": "integer", "format": "int32", "minimum": 0 } } } },
+      "FinalizePurchaseEventResponse": { "type": "object", "properties": { "associateTransaction": { "type": ["array", "null"], "items": { "type": "integer", "format": "int32", "minimum": 0 } } } },
+      "Launch": {
+        "type": "object",
+        "required": ["launchId", "title", "description", "imageCidr", "priceUsd", "availableAt", "quantity", "quantityAvailable", "collectionTitle", "collectionDescription", "collectionCreator", "collectionImageCidr", "collectionTokenNum"],
+        "properties": {
+          "availableAt": { "type": "string", "format": "date-time" },
+          "collectionCreator": { "type": "string" },
+          "collectionDescription": { "type": "string" },
+          "collectionImageCidr": { "type": "string" },
+          "collectionTitle": { "type": "string" },
+          "collectionTokenNum": { "type": "integer", "format": "int64", "minimum": 0 },
+          "description": { "type": "string" },
+          "imageCidr": { "type": "string" },
+          "launchId": { "type": "string", "format": "uuid" },
+          "priceUsd": { "type": "string" },
+          "quantity": { "type": "integer", "format": "int64", "minimum": 0 },
+          "quantityAvailable": { "type": "integer", "format": "int64", "minimum": 0 },
+          "title": { "type": "string" }
+        }
+      },
+      "LaunchPurchase": { "type": "object", "required": ["launchPurchaseId", "status"], "properties": { "launchPurchaseId": { "type": "string", "format": "uuid" }, "status": { "$ref": "#/components/schemas/LaunchPurchaseStatus" } } },
+      "LaunchPurchaseStatus": { "type": "string", "enum": ["pending", "charged", "finalized", "expired"] },
+      "LoginWithKeyRequest": {
+        "type": "object",
+        "description": "Request structure for authenticating with a Hedera account key pair\n\nThis structure is used to authenticate a user by verifying their ownership\nof a Hedera account through cryptographic signature verification.",
+        "required": ["accountId", "publicKey", "accountIdSignature"],
+        "properties": {
+          "accountId": { "type": "string", "description": "The Hedera account ID associated with the user's account\n\nThis is the account that will be authenticated and associated with the user's session." },
+          "accountIdSignature": {
+            "type": "array",
+            "items": { "type": "integer", "format": "int32", "minimum": 0 },
+            "description": "The cryptographic signature of the account ID\n\nThis signature must be generated using the private key corresponding to\nthe provided public_key, signing the account_id."
           },
-          "tag": {
-            "description": "Tag to specify the type",
-            "type": "string"
+          "publicKey": { "type": "string", "description": "The public key of the account that will be used to verify the signature\n\nThis key must be associated with the provided account_id and will be used\nto verify the cryptographic signature." }
+        }
+      },
+      "PurchaseEventRequest": { "type": "object", "required": ["tickets"], "properties": { "tickets": { "type": "object", "additionalProperties": { "type": "integer", "format": "int32", "minimum": 0 }, "propertyNames": { "type": "string", "format": "uuid" } } } },
+      "PurchaseEventResponse": { "type": "object", "required": ["eventPurchaseId", "paymentIntentClientSecret"], "properties": { "eventPurchaseId": { "type": "string", "format": "uuid" }, "paymentIntentClientSecret": { "type": "string" } } },
+      "RedeemEventTicketFinalizeResponse": {
+        "type": "object",
+        "description": "Response for finalizing an event ticket redemption",
+        "required": ["event_title", "event_scheduled_at", "event_location", "ticket_description"],
+        "properties": { "event_location": { "type": "string" }, "event_scheduled_at": { "type": "string", "format": "date-time" }, "event_title": { "type": "string" }, "ticket_description": { "type": "string" } }
+      },
+      "RedeemEventTicketRequest": { "type": "object", "description": "Request for redeeming an event ticket", "properties": { "approve_transaction": { "type": ["array", "null"], "items": { "type": "integer", "format": "int32", "minimum": 0 } } } },
+      "RedeemEventTicketResponse": {
+        "type": "object",
+        "description": "Response for redeeming an event ticket",
+        "properties": { "approve_transaction": { "type": ["array", "null"], "items": { "type": "integer", "format": "int32", "minimum": 0 } }, "event_ticket_redemption_id": { "type": ["string", "null"], "format": "uuid" } }
+      },
+      "ResponseBody_BeginLaunchPurchaseResponse": {
+        "type": "object",
+        "required": ["data"],
+        "properties": { "data": { "type": "object", "description": "Response from beginning a launch purchase", "required": ["launch_purchase_id", "client_secret"], "properties": { "client_secret": { "type": "string" }, "launch_purchase_id": { "type": "string", "format": "uuid" } } } }
+      },
+      "ResponseBody_EventPurchase": {
+        "type": "object",
+        "required": ["data"],
+        "properties": { "data": { "type": "object", "required": ["eventPurchaseId", "status"], "properties": { "eventPurchaseId": { "type": "string", "format": "uuid" }, "status": { "$ref": "#/components/schemas/EventPurchaseStatus" } } } }
+      },
+      "ResponseBody_FinalizeLaunchPurchaseResponse": {
+        "type": "object",
+        "required": ["data"],
+        "properties": {
+          "data": {
+            "type": "object",
+            "description": "Response from finalizing a launch purchase",
+            "required": ["token_num", "serial_num", "title", "image_cidr"],
+            "properties": {
+              "associate_transaction": { "type": ["array", "null"], "items": { "type": "integer", "format": "int32", "minimum": 0 } },
+              "image_cidr": { "type": "string" },
+              "serial_num": { "type": "integer", "format": "int64", "minimum": 0 },
+              "title": { "type": "string" },
+              "token_num": { "type": "integer", "format": "int64", "minimum": 0 }
+            }
           }
         }
       },
-      "NewPlant": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/Plant"
-          },
-          {
-            "required": [
-              "id"
-            ],
+      "ResponseBody_FinalizePurchaseEventResponse": { "type": "object", "required": ["data"], "properties": { "data": { "type": "object", "properties": { "associateTransaction": { "type": ["array", "null"], "items": { "type": "integer", "format": "int32", "minimum": 0 } } } } } },
+      "ResponseBody_LaunchPurchase": {
+        "type": "object",
+        "required": ["data"],
+        "properties": { "data": { "type": "object", "required": ["launchPurchaseId", "status"], "properties": { "launchPurchaseId": { "type": "string", "format": "uuid" }, "status": { "$ref": "#/components/schemas/LaunchPurchaseStatus" } } } }
+      },
+      "ResponseBody_PurchaseEventResponse": {
+        "type": "object",
+        "required": ["data"],
+        "properties": { "data": { "type": "object", "required": ["eventPurchaseId", "paymentIntentClientSecret"], "properties": { "eventPurchaseId": { "type": "string", "format": "uuid" }, "paymentIntentClientSecret": { "type": "string" } } } }
+      },
+      "ResponseBody_RedeemEventTicketFinalizeResponse": {
+        "type": "object",
+        "required": ["data"],
+        "properties": {
+          "data": {
             "type": "object",
+            "description": "Response for finalizing an event ticket redemption",
+            "required": ["event_title", "event_scheduled_at", "event_location", "ticket_description"],
+            "properties": { "event_location": { "type": "string" }, "event_scheduled_at": { "type": "string", "format": "date-time" }, "event_title": { "type": "string" }, "ticket_description": { "type": "string" } }
+          }
+        }
+      },
+      "ResponseBody_RedeemEventTicketResponse": {
+        "type": "object",
+        "required": ["data"],
+        "properties": {
+          "data": {
+            "type": "object",
+            "description": "Response for redeeming an event ticket",
+            "properties": { "approve_transaction": { "type": ["array", "null"], "items": { "type": "integer", "format": "int32", "minimum": 0 } }, "event_ticket_redemption_id": { "type": ["string", "null"], "format": "uuid" } }
+          }
+        }
+      },
+      "ResponseBody_String": { "type": "object", "required": ["data"], "properties": { "data": { "type": "string" } } },
+      "ResponseBody_UserSession": {
+        "type": "object",
+        "required": ["data"],
+        "properties": {
+          "data": {
+            "type": "object",
+            "description": "Represents a user's authentication session\n\nThis structure contains the authentication token and user information\nthat is returned after successful authentication.",
+            "required": ["token", "userId"],
             "properties": {
-              "id": {
-                "description": "Identification number of the plant",
-                "type": "integer",
-                "format": "int64"
+              "magicIssuer": {
+                "type": ["string", "null"],
+                "description": "The Magic.link issuer identifier associated with the user's wallet\n\nThis field is optional and may be present if the user authenticated\nusing Magic.link. The issuer is in the format \"did:ethr:{address}\".",
+                "example": "did:ethr:0x1234567890abcdef"
+              },
+              "token": {
+                "type": "string",
+                "description": "The authentication token that should be included in subsequent requests\nin the Authorization header as a Bearer token",
+                "example": "v4.public.eyJ0b2tlbiI6ImRpZDpldGhyOjB4MTIzNDU2Nzg5MGFiY2RlZiIsImV4cGlyZXNfYXQiOiIyMDI0LTAxLTAxVDAwOjAwOjAwWiJ9.signature"
+              },
+              "userId": { "type": "string", "format": "uuid", "description": "The user's unique identifier generated by Mingo\n\nThis ID is used to associate the user with their data and permissions\nacross the system.", "example": "123e4567-e89b-12d3-a456-426614174000" }
+            }
+          }
+        }
+      },
+      "ResponseBody_Vec_Event": {
+        "type": "object",
+        "required": ["data"],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["eventId", "title", "imageCidr", "location", "locationImageCidr", "scheduledAt", "tickets"],
+              "properties": {
+                "eventId": { "type": "string", "format": "uuid" },
+                "imageCidr": { "type": "string" },
+                "location": { "type": "string" },
+                "locationImageCidr": { "type": "string" },
+                "scheduledAt": { "type": "string", "format": "date-time" },
+                "tickets": { "type": "array", "items": { "$ref": "#/components/schemas/EventTicket" } },
+                "title": { "type": "string" }
               }
             }
           }
-        ]
+        }
       },
-      "Error": {
-        "required": [
-          "error",
-          "message"
-        ],
+      "ResponseBody_Vec_Launch": {
         "type": "object",
+        "required": ["data"],
         "properties": {
-          "error": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["launchId", "title", "description", "imageCidr", "priceUsd", "availableAt", "quantity", "quantityAvailable", "collectionTitle", "collectionDescription", "collectionCreator", "collectionImageCidr", "collectionTokenNum"],
+              "properties": {
+                "availableAt": { "type": "string", "format": "date-time" },
+                "collectionCreator": { "type": "string" },
+                "collectionDescription": { "type": "string" },
+                "collectionImageCidr": { "type": "string" },
+                "collectionTitle": { "type": "string" },
+                "collectionTokenNum": { "type": "integer", "format": "int64", "minimum": 0 },
+                "description": { "type": "string" },
+                "imageCidr": { "type": "string" },
+                "launchId": { "type": "string", "format": "uuid" },
+                "priceUsd": { "type": "string" },
+                "quantity": { "type": "integer", "format": "int64", "minimum": 0 },
+                "quantityAvailable": { "type": "integer", "format": "int64", "minimum": 0 },
+                "title": { "type": "string" }
+              }
+            }
           }
         }
-      }
+      },
+      "ResponseBody_Vec_WalletAsset": {
+        "type": "object",
+        "required": ["data"],
+        "properties": { "data": { "type": "array", "items": { "allOf": [{ "$ref": "#/components/schemas/Token" }, { "type": "object", "required": ["balance"], "properties": { "balance": { "type": "string" }, "valueUsd": { "type": ["string", "null"] } } }] } } }
+      },
+      "ResponseBody_Wallet": { "type": "object", "required": ["data"], "properties": { "data": { "type": "object", "required": ["accountId"], "properties": { "accountId": { "type": "string", "example": "0.0.12345" } } } } },
+      "Token": {
+        "type": "object",
+        "required": ["tokenType", "tokenSymbol", "tokenDecimals"],
+        "properties": {
+          "tokenDecimals": { "type": "integer", "format": "int32", "minimum": 0 },
+          "tokenId": { "type": ["string", "null"], "example": "0.0.12345" },
+          "tokenSymbol": { "type": "string" },
+          "tokenType": { "$ref": "#/components/schemas/TokenType" },
+          "unitPriceUsd": { "type": ["string", "null"] }
+        }
+      },
+      "TokenType": { "type": "string", "enum": ["fungible", "non_fungible"] },
+      "UserSession": {
+        "type": "object",
+        "description": "Represents a user's authentication session\n\nThis structure contains the authentication token and user information\nthat is returned after successful authentication.",
+        "required": ["token", "userId"],
+        "properties": {
+          "magicIssuer": {
+            "type": ["string", "null"],
+            "description": "The Magic.link issuer identifier associated with the user's wallet\n\nThis field is optional and may be present if the user authenticated\nusing Magic.link. The issuer is in the format \"did:ethr:{address}\".",
+            "example": "did:ethr:0x1234567890abcdef"
+          },
+          "token": {
+            "type": "string",
+            "description": "The authentication token that should be included in subsequent requests\nin the Authorization header as a Bearer token",
+            "example": "v4.public.eyJ0b2tlbiI6ImRpZDpldGhyOjB4MTIzNDU2Nzg5MGFiY2RlZiIsImV4cGlyZXNfYXQiOiIyMDI0LTAxLTAxVDAwOjAwOjAwWiJ9.signature"
+          },
+          "userId": { "type": "string", "format": "uuid", "description": "The user's unique identifier generated by Mingo\n\nThis ID is used to associate the user with their data and permissions\nacross the system.", "example": "123e4567-e89b-12d3-a456-426614174000" }
+        }
+      },
+      "Wallet": { "type": "object", "required": ["accountId"], "properties": { "accountId": { "type": "string", "example": "0.0.12345" } } },
+      "WalletAsset": { "allOf": [{ "$ref": "#/components/schemas/Token" }, { "type": "object", "required": ["balance"], "properties": { "balance": { "type": "string" }, "valueUsd": { "type": ["string", "null"] } } }] }
     },
-    "securitySchemes": {
-      "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer"
-      }
-    }
+    "securitySchemes": { "paseto_admin_token": { "type": "http", "scheme": "bearer" }, "paseto_operator_token": { "type": "http", "scheme": "bearer" }, "paseto_user_token": { "type": "http", "scheme": "bearer" } }
   }
 }

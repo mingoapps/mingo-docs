@@ -14,12 +14,8 @@
         "tab": "Guides",
         "groups": [
           {
-            "group": "Get Started",
-            "pages": ["index", "quickstart", "development"]
-          },
-          {
-            "group": "Authentication",
-            "pages": ["authentication/introduction"]
+            "group": "HOME",
+            "pages": ["index"]
           }
         ]
       },
@@ -31,25 +27,14 @@
             "pages": ["api-reference/introduction"]
           },
           {
-            "group": "Endpoint Examples",
-            "pages": ["api-reference/endpoint/get", "api-reference/endpoint/create", "api-reference/endpoint/delete", "api-reference/endpoint/webhook"]
+            "group": "API Endpoints",
+            "openapi": "api-reference/openapi.json"
           }
         ]
       }
     ],
     "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Community",
-          "href": "https://mintlify.com/community",
-          "icon": "slack"
-        }
-      ]
+      "anchors": []
     }
   },
   "logo": {
