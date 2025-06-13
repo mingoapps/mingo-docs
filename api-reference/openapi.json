@@ -1,6 +1,10 @@
 {
   "openapi": "3.1.0",
   "info": { "title": "Mingo Api", "description": "Rest api for Mingo's Web3 ticketing platform", "contact": { "name": "Mingo Engineering", "url": "https://mingo.com", "email": "engineering@mingo.com" }, "license": { "name": "" }, "version": "0.1.0" },
+  "servers": [
+    { "url": "https://api.mingo.com", "description": "Production API" },
+    { "url": "https://api-dev.mingo.com", "description": "Development API" }
+  ],
   "paths": {
     "/auth/login/did": {
       "post": {
