@@ -131,7 +131,7 @@
     },
     "/launch": {
       "get": {
-        "tags": ["Nft Collections"],
+        "tags": ["NFT Collections"],
         "summary": "List Nft Collections",
         "operationId": "getAvailableLaunches",
         "responses": { "200": { "description": "List of available launches retrieved successfully", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ResponseBody_Vec_Launch" } } } }, "401": { "description": "Unauthorized user" } }
@@ -139,7 +139,7 @@
     },
     "/launch/purchase/{purchase}": {
       "get": {
-        "tags": ["Nft Collections"],
+        "tags": ["NFT Collections"],
         "summary": "Get Nft Collection purchase status",
         "description": "Retrieves the current status of a launch purchase.",
         "operationId": "getLaunchPurchaseStatus",
@@ -153,7 +153,7 @@
         "security": [{ "auth": [] }]
       },
       "post": {
-        "tags": ["Nft Collections"],
+        "tags": ["NFT Collections"],
         "summary": "Finalize an Nft Collection purchase",
         "description": "Completes the purchase process by minting the NFT.",
         "operationId": "finalizeLaunchPurchase",
@@ -172,7 +172,7 @@
     },
     "/launch/{id}/purchase": {
       "post": {
-        "tags": ["Nft Collections"],
+        "tags": ["NFT Collections"],
         "summary": "Begin an Nft Collection purchase",
         "description": "Starts the process of purchasing a launch NFT.",
         "operationId": "beginLaunchPurchase",

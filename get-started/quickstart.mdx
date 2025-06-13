@@ -1,0 +1,97 @@
+---
+title: "Quickstart"
+description: "Get started with Mingo's REST API in minutes"
+icon: "circle-play"
+---
+
+## API Overview
+
+Mingo provides a REST API that can be used with any programming language or framework. Our API enables you to integrate Mingo's Web3 wallet, ticketing and NFT capabilities into your applications.
+
+## Base URLs
+
+Mingo's API is available in two environments:
+
+<CardGroup cols={2}>
+  <Card title="Production" icon="server">
+    Connected to the Hedera mainnet, use this for live applications
+    <br />
+    <br />
+    ```https://api.mingo.com ```
+  </Card>
+  <Card title="Development" icon="code">
+    Connected to the Hedera testnet, use this for testing and development
+    <br />
+    <br />
+    ```https://api-dev.mingo.com ```
+  </Card>
+</CardGroup>
+
+## Authentication
+
+All API requests require authentication. Mingo supports two authentication methods:
+
+### 1. Magic Link DID Authentication
+
+```bash
+# Example request to authenticate with Magic Link DID
+curl -X POST https://api-dev.mingo.com/auth/login/did \
+  -H "Content-Type: application/json" \
+  -d '{
+    "did_token": "your_magic_link_did_token"
+  }'
+```
+
+### 2. Hedera Key Pair Authentication
+
+```bash
+# Example request to authenticate with Hedera key pair
+curl -X POST https://api-dev.mingo.com/auth/login/key \
+  -H "Content-Type: application/json" \
+  -d '{
+    "public_key": "your_public_key",
+    "signature": "your_signature"
+  }'
+```
+
+After successful authentication, you'll receive a Bearer token that must be included in all subsequent requests:
+
+```bash
+# Example of making an authenticated request
+curl https://api-dev.mingo.com/event \
+  -H "Authorization: Bearer your_auth_token"
+```
+
+## Making Your First Request
+
+1. Choose your authentication method (Magic Link DID or Hedera key pair)
+2. Authenticate to get your Bearer token
+3. Include the token in the Authorization header of your requests
+4. Start making API calls to Mingo's endpoints
+
+<CardGroup cols={2}>
+  <Card title="View Events" icon="calendar" href="/api-reference/events">
+    List available events and their tickets
+  </Card>
+  <Card title="Manage NFTs" icon="image" href="/api-reference/nft-collections">
+    Launch and manage NFT collections
+  </Card>
+  <Card title="Wallet Operations" icon="wallet" href="/api-reference/wallet">
+    View and manage Hedera wallet assets
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference">
+    Explore all available endpoints
+  </Card>
+</CardGroup>
+
+## Best Practices
+
+- Always use HTTPS for API requests
+- Store your authentication tokens securely
+- Implement proper error handling
+- Use the development environment for testing
+- Follow rate limiting guidelines
+
+## Need Help?
+
+For technical support or questions about the API, contact our engineering team at engineering@mingo.com.
