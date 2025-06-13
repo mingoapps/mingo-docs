@@ -204,6 +204,23 @@
         "operationId": "getWalletAssets",
         "responses": { "200": { "description": "Wallet assets retrieved successfully", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ResponseBody_Vec_WalletAsset" } } } }, "401": { "description": "Unauthorized user" } }
       }
+    },
+    "/wallet/transfer": {
+      "post": {
+        "tags": ["Wallet"],
+        "summary": "Transfer tokens to another account",
+        "operationId": "transferTokens",
+        "requestBody": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TokenTransferRequest" } } }, "required": true },
+        "responses": {
+          "200": { "description": "Transfer successful", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TokenTransferResponse" } } } },
+          "202": { "description": "Transaction needs signing", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TokenTransferResponse" } } } },
+          "400": { "description": "Invalid request" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Insufficient balance or not allowed" },
+          "500": { "description": "Internal server error" }
+        },
+        "security": [{ "paseto_user_token": [] }]
+      }
     }
   },
   "components": {
@@ -451,6 +468,18 @@
           "unitPriceUsd": { "type": ["string", "null"] }
         }
       },
+      "TokenTransferRequest": {
+        "type": "object",
+        "required": ["to_account", "amount"],
+        "properties": {
+          "amount": { "type": "integer", "format": "int64", "minimum": 0 },
+          "memo": { "type": ["string", "null"] },
+          "signed_transaction_bytes": { "type": ["array", "null"], "items": { "type": "integer", "format": "int32", "minimum": 0 } },
+          "to_account": { "type": "string" },
+          "token_id": { "type": ["string", "null"] }
+        }
+      },
+      "TokenTransferResponse": { "type": "object", "required": ["status"], "properties": { "error": { "type": ["string", "null"] }, "status": { "type": "string" }, "transaction_id": { "type": ["string", "null"] }, "unsigned_transaction_bytes": { "type": ["string", "null"] } } },
       "TokenType": { "type": "string", "enum": ["fungible", "non_fungible"] },
       "UserSession": {
         "type": "object",
