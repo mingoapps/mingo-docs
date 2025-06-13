@@ -208,7 +208,7 @@
     "/wallet/transfer": {
       "post": {
         "tags": ["Wallet"],
-        "summary": "Transfer tokens to another account",
+        "summary": "Transfer tokens",
         "operationId": "transferTokens",
         "requestBody": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TokenTransferRequest" } } }, "required": true },
         "responses": {
