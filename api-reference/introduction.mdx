@@ -1,33 +1,107 @@
 ---
-title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+title: "Introduction"
+description: "Welcome to Mingo's REST API documentation"
 ---
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
+## Base URLs
 
-## Welcome
+Mingo's API is available in two environments:
 
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
+<CardGroup cols={2}>
+  <Card title="Production" icon="server">
+    Connected to the Hedera mainnet, use this for live applications
+    <br />
+    <br />
+    ```https://api.mingo.com```
+  </Card>
+  <Card title="Development" icon="code">
+    Connected to the Hedera testnet, use this for testing and development
+    <br />
+    <br />
+    ```https://api-dev.mingo.com```
+  </Card>
+</CardGroup>
 
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
+## Overview
+
+Mingo's REST API provides a comprehensive interface for integrating with our Web3 ticketing platform. Our API enables you to build applications that interact with digital assets, event ticketing, and NFT collections powered by Hedera Hashgraph.
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key">
+    Secure authentication using Magic link Decentralized Identity tokens DID or Hedera key pairs
+  </Card>
+  <Card title="Wallet Integration" icon="wallet">
+    Manage Hedera wallets, view assets, and handle transactions
+  </Card>
+  <Card title="Event Management" icon="calendar">
+    Create and manage events, handle ticket sales, and process ticket redemptions
+  </Card>
+  <Card title="NFT Collections" icon="image">
+    Launch and manage NFT collections, handle purchases, and track ownership
+  </Card>
+</CardGroup>
+
+## Core Concepts
+
+### Authentication
+
+Mingo's API supports two authentication methods:
+
+- **Magic.link DID Authentication**: For web3 wallet-based authentication
+- **Hedera Key Pair Authentication**: For direct Hedera account access
+
+All authenticated requests require a Bearer token in the Authorization header.
+
+### Events and Ticketing
+
+The API provides comprehensive event management capabilities:
+
+- Create and list events
+- Manage ticket types and pricing
+- Handle ticket purchases and redemptions
+- Track event attendance
+
+### NFT Collections
+
+Manage NFT collections with features for:
+
+- Launching new collections
+- Managing collection metadata
+- Handling NFT purchases
+- Tracking collection ownership
+
+### Wallet Management
+
+Interact with Hedera wallets to:
+
+- View wallet assets
+- Check token balances
+- Monitor transaction history
+- Manage digital assets
+
+## Getting Started
+
+To begin using Mingo's API:
+
+1. Choose your authentication method (Magic.link or Hedera key pair)
+2. Obtain your API credentials
+3. Make your first authenticated request
+4. Explore the available endpoints for your use case
+
+<Card title="OpenAPI Specification" icon="code" href="https://mingo-backend-dev.up.railway.app/docs/openapi.json">
+  View the complete OpenAPI specification
 </Card>
 
-## Authentication
+## Best Practices
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+- Always use HTTPS for API requests
+- Implement proper error handling
+- Cache responses when appropriate
+- Follow rate limiting guidelines
+- Keep your authentication tokens secure
 
-```json
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
-```
+## Support
+
+For technical support or questions about the API, contact our engineering team at engineering@mingo.com.
